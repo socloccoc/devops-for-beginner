@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment{
-        FULL_IMAGE = "430950558682.dkr.ecr.ap-southeast-1.amazonaws.com/nodejs-random-color:${VERSION}"
+        FULL_IMAGE = "230467294357.dkr.ecr.us-east-1.amazonaws.com/nodejs-random-color:${VERSION}"
         TASK_DEFINITION =""
         NEW_TASK_DEFINITION=""
         NEW_TASK_INFO=""
@@ -17,7 +17,7 @@ pipeline {
                     doGenerateSubmoduleConfigurations: false, 
                     extensions: [], 
                     submoduleCfg: [], 
-                    userRemoteConfigs: [[url: 'git@github.com:hoanglinhdigital/nodejs-random-color.git', credentialsId: 'github-key-02142024']]
+                    userRemoteConfigs: [[url: 'git@github.com:socloccoc/nodejs-random-color.git', credentialsId: 'github-key-20241109']]
                 ])
             }
 
@@ -41,31 +41,31 @@ pipeline {
                 }
             }
             steps {
-                sh 'aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 430950558682.dkr.ecr.ap-southeast-1.amazonaws.com'
+                sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 230467294357.dkr.ecr.us-east-1.amazonaws.com'
 
-                sh 'docker tag nodejs-random-color:${VERSION} 430950558682.dkr.ecr.ap-southeast-1.amazonaws.com/nodejs-random-color:${VERSION}'
+                sh 'docker tag nodejs-random-color:latest 230467294357.dkr.ecr.us-east-1.amazonaws.com/nodejs-random-color:${VERSION}'
                 
-                sh 'docker push 430950558682.dkr.ecr.ap-southeast-1.amazonaws.com/nodejs-random-color:${VERSION}'
+                sh 'docker push 230467294357.dkr.ecr.us-east-1.amazonaws.com/nodejs-random-color:${VERSION}'
             }
         }
         
-        stage('Update task definition and force deploy ecs service') {
-            when {
-                expression {
-                    def action=env.ACTION 
-                    return action == 'BuildAndDeploy' || action == 'OnlyDeploy'
-                }
-            }
-            steps {
-                sh '''
-                    TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition ${TASK_FAMILY} --region "ap-southeast-1")
-                    NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${FULL_IMAGE}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) |  del(.registeredAt)  | del(.registeredBy)')
-                    NEW_TASK_INFO=$(aws ecs register-task-definition --region "ap-southeast-1" --cli-input-json "$NEW_TASK_DEFINITION")
-                    NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
-                    aws ecs update-service --cluster udemy-devops-ecs-cluster --service nodejs-service --task-definition ${TASK_FAMILY}:${NEW_REVISION} --force-new-deployment
-                '''
+        // stage('Update task definition and force deploy ecs service') {
+        //     when {
+        //         expression {
+        //             def action=env.ACTION 
+        //             return action == 'BuildAndDeploy' || action == 'OnlyDeploy'
+        //         }
+        //     }
+        //     steps {
+        //         sh '''
+        //             TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition ${TASK_FAMILY} --region "ap-southeast-1")
+        //             NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${FULL_IMAGE}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) |  del(.registeredAt)  | del(.registeredBy)')
+        //             NEW_TASK_INFO=$(aws ecs register-task-definition --region "ap-southeast-1" --cli-input-json "$NEW_TASK_DEFINITION")
+        //             NEW_REVISION=$(echo $NEW_TASK_INFO | jq '.taskDefinition.revision')
+        //             aws ecs update-service --cluster udemy-devops-ecs-cluster --service nodejs-service --task-definition ${TASK_FAMILY}:${NEW_REVISION} --force-new-deployment
+        //         '''
  
-            }
-        }
+        //     }
+        // }
     }
 }

@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/hoanglinhdigital/nodejs-random-color.git'
+                git 'https://github.com/socloccoc/nodejs-random-color.git'
             }
         }
 
@@ -18,16 +18,16 @@ pipeline {
         }
         stage('Upload image to ECR') {
             steps {
-                sh 'aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 430950558682.dkr.ecr.ap-southeast-1.amazonaws.com'
-                sh 'docker tag nodejs-random-color:ver-${BUILD_ID} 430950558682.dkr.ecr.ap-southeast-1.amazonaws.com/nodejs-random-color:ver-${BUILD_ID}'
-                sh 'docker push 430950558682.dkr.ecr.ap-southeast-1.amazonaws.com/nodejs-random-color:ver-${BUILD_ID}'
+                sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 230467294357.dkr.ecr.us-east-1.amazonaws.com'
+                sh 'docker tag nodejs-random-color:latest 230467294357.dkr.ecr.us-east-1.amazonaws.com/nodejs-random-color:ver-${BUILD_ID}'
+                sh 'docker push 230467294357.dkr.ecr.us-east-1.amazonaws.com/nodejs-random-color:ver-${BUILD_ID}'
             }
         }
     }
     post {
         always {
             echo 'Build has been finished! Notify to Slack'
-            slackSend channel: '#udemy-devops-demo',
+            slackSend channel: '#daidv-test',
                 color: COLOR_MAP[currentBuild.currentResult],
                 message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
         }
